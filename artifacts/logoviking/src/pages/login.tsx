@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { GoogleButton } from "@/components/auth/GoogleButton";
+import { OAuthErrorBanner } from "@/components/auth/OAuthErrorBanner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -34,7 +36,15 @@ export default function Login() {
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <p className="text-sm text-muted-foreground">Sign in to access your dashboard and history.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <OAuthErrorBanner />
+          <GoogleButton label="Continue with Google" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or sign in with email</span>
+            </div>
+          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" /></div>
             <div><Label>Password</Label><Input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" /></div>

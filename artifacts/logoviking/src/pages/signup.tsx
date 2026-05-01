@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { GoogleButton } from "@/components/auth/GoogleButton";
+import { OAuthErrorBanner } from "@/components/auth/OAuthErrorBanner";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -35,7 +37,15 @@ export default function Signup() {
           <CardTitle className="text-2xl">Create your account</CardTitle>
           <p className="text-sm text-muted-foreground">Free forever. Save your history and access pro features later.</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <OAuthErrorBanner />
+          <GoogleButton label="Continue with Google" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or sign up with email</span>
+            </div>
+          </div>
           <form onSubmit={onSubmit} className="space-y-4">
             <div><Label>Name</Label><Input value={name} onChange={e => setName(e.target.value)} required /></div>
             <div><Label>Email</Label><Input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" /></div>

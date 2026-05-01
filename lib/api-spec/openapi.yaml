@@ -741,6 +741,10 @@ components:
         name: { type: string }
         email: { type: string }
         plan: { type: string }
+        avatarUrl:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
       required: [id, name, email, plan]
 
     UserResult:

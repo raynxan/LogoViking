@@ -178,6 +178,7 @@ export interface User {
   name: string;
   email: string;
   plan: string;
+  avatarUrl?: string | null;
 }
 
 export interface AuthResult {

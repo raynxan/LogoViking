@@ -54,7 +54,7 @@ Pure browser canvas operations (compress, resize, crop, convert, watermark, colo
 
 ### Auth
 
-Email + password, server-side session cookie, surface via `components/auth/AuthContext.tsx` (`useGetCurrentUser`). DB schema in `lib/db/src/schema/index.ts` (`usersTable`, `sessionsTable`, `usageHistoryTable`, `contactsTable`).
+Email + password and Google OAuth, server-side session cookie, surface via `components/auth/AuthContext.tsx` (`useGetCurrentUser`). DB schema in `lib/db/src/schema/index.ts` (`usersTable` with optional `passwordHash`, `googleId`, `avatarUrl`; `sessionsTable`, `usageHistoryTable`, `contactsTable`). Google OAuth flow lives in `artifacts/api-server/src/lib/auth.ts` and `routes/auth.ts` (`GET /api/auth/google` → consent; `GET /api/auth/google/callback` → exchange + find-or-link by `googleId` then email, then session, redirect to `/dashboard`). Requires secrets `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`; without them the button gracefully redirects to `/login?error=google_not_configured`. Login/signup pages render `components/auth/GoogleButton.tsx` and `OAuthErrorBanner.tsx`.
 
 ### Theming
 

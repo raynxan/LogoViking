@@ -57,10 +57,112 @@ export async function getUserFromRequest(req: Request) {
     name: usersTable.name,
     email: usersTable.email,
     plan: usersTable.plan,
+    avatarUrl: usersTable.avatarUrl,
   })
     .from(sessionsTable)
     .innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
     .where(and(eq(sessionsTable.token, hashSessionToken(token)), gt(sessionsTable.expiresAt, new Date())))
     .limit(1);
   return rows[0] ?? null;
+}
+
+const OAUTH_STATE_COOKIE = "lv_oauth_state";
+
+export function isGoogleOAuthConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+
+export function getGoogleRedirectUri(req: Request): string {
+  if (process.env.GOOGLE_REDIRECT_URI) return process.env.GOOGLE_REDIRECT_URI;
+  const proto = (req.headers["x-forwarded-proto"] as string) ?? req.protocol;
+  const host = req.headers["x-forwarded-host"] ?? req.headers.host;
+  return `${proto}://${host}/api/auth/google/callback`;
+}
+
+export function startGoogleOAuth(req: Request, res: Response) {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    res.status(503).json({ ok: false, message: "Google sign-in is not configured." });
+    return;
+  }
+  const state = crypto.randomBytes(24).toString("hex");
+  res.cookie(OAUTH_STATE_COOKIE, state, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: "lax",
+    maxAge: 10 * 60 * 1000,
+    path: "/",
+  });
+  const redirectUri = getGoogleRedirectUri(req);
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    state,
+    access_type: "online",
+    prompt: "select_account",
+  });
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
+}
+
+export interface GoogleProfile {
+  sub: string;
+  email: string;
+  email_verified?: boolean;
+  name?: string;
+  picture?: string;
+}
+
+export async function exchangeGoogleCodeForProfile(
+  code: string,
+  redirectUri: string,
+): Promise<GoogleProfile> {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("Google OAuth is not configured");
+  }
+
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: "authorization_code",
+    }),
+  });
+
+  if (!tokenRes.ok) {
+    const text = await tokenRes.text();
+    throw new Error(`Google token exchange failed: ${tokenRes.status} ${text}`);
+  }
+
+  const tokenJson = (await tokenRes.json()) as { access_token?: string; id_token?: string };
+  if (!tokenJson.access_token) {
+    throw new Error("Google token response missing access_token");
+  }
+
+  const userRes = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+    headers: { Authorization: `Bearer ${tokenJson.access_token}` },
+  });
+  if (!userRes.ok) {
+    const text = await userRes.text();
+    throw new Error(`Google userinfo failed: ${userRes.status} ${text}`);
+  }
+
+  const profile = (await userRes.json()) as GoogleProfile;
+  if (!profile.sub || !profile.email) {
+    throw new Error("Google profile missing required fields");
+  }
+  return profile;
+}
+
+export function consumeOAuthState(req: Request, res: Response): string | null {
+  const cookieState = req.cookies?.[OAUTH_STATE_COOKIE] ?? null;
+  res.clearCookie(OAUTH_STATE_COOKIE, { path: "/" });
+  return cookieState;
 }

@@ -260,6 +260,7 @@ export const RegisterResponse = zod.object({
       name: zod.string(),
       email: zod.string(),
       plan: zod.string(),
+      avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
     })
     .optional(),
 });
@@ -277,6 +278,7 @@ export const LoginResponse = zod.object({
       name: zod.string(),
       email: zod.string(),
       plan: zod.string(),
+      avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
     })
     .optional(),
 });
@@ -294,6 +296,7 @@ export const GetCurrentUserResponse = zod.object({
         name: zod.string(),
         email: zod.string(),
         plan: zod.string(),
+        avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
       }),
       zod.null(),
     ])
