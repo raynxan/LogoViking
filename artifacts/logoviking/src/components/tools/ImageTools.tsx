@@ -200,7 +200,6 @@ type AspectChip = { id: string; label: string; ratio: number | null };
 
 const ASPECT_CHIPS: AspectChip[] = [
   { id: "original", label: "Original", ratio: null },
-  { id: "free", label: "Free", ratio: null },
   { id: "1:1", label: "Square", ratio: 1 },
   { id: "9:16", label: "9:16", ratio: 9 / 16 },
   { id: "16:9", label: "16:9", ratio: 16 / 9 },
@@ -244,7 +243,7 @@ function IPhoneCropper({ image, aspectId, rotation, onReady }: IPhoneCropperProp
     if (chip?.ratio != null) {
       ratio = chip.ratio;
     } else {
-      // "original" or "free" -> use rotated image's own ratio
+      // "original" -> use rotated image's own ratio
       ratio = iw / ih;
     }
     let w = padded.w;
