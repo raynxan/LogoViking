@@ -43,6 +43,7 @@ import type {
   MetaTagResult,
   RegisterInput,
   RobotsInput,
+  SetPasswordInput,
   SitemapInput,
   SocialSpecsResult,
   StatusResult,
@@ -2110,6 +2111,180 @@ export function useGetUserHistory<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Lets a signed-in user add a password (e.g. so a Google-only account
+gains an email/password backup login) or change an existing one.
+When the user already has a password, `currentPassword` is required.
+
+ * @summary Set or change the password on the signed-in user's account
+ */
+export const getSetUserPasswordUrl = () => {
+  return `/api/user/set-password`;
+};
+
+export const setUserPassword = async (
+  setPasswordInput: SetPasswordInput,
+  options?: RequestInit,
+): Promise<StatusResult> => {
+  return customFetch<StatusResult>(getSetUserPasswordUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(setPasswordInput),
+  });
+};
+
+export const getSetUserPasswordMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setUserPassword>>,
+    TError,
+    { data: BodyType<SetPasswordInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setUserPassword>>,
+  TError,
+  { data: BodyType<SetPasswordInput> },
+  TContext
+> => {
+  const mutationKey = ["setUserPassword"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setUserPassword>>,
+    { data: BodyType<SetPasswordInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return setUserPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetUserPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setUserPassword>>
+>;
+export type SetUserPasswordMutationBody = BodyType<SetPasswordInput>;
+export type SetUserPasswordMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Set or change the password on the signed-in user's account
+ */
+export const useSetUserPassword = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setUserPassword>>,
+    TError,
+    { data: BodyType<SetPasswordInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof setUserPassword>>,
+  TError,
+  { data: BodyType<SetPasswordInput> },
+  TContext
+> => {
+  return useMutation(getSetUserPasswordMutationOptions(options));
+};
+
+/**
+ * Unlinks the Google account from the signed-in user. Only allowed when
+the account also has a password set, so the user keeps a way to sign in.
+
+ * @summary Remove the linked Google account
+ */
+export const getDisconnectGoogleUrl = () => {
+  return `/api/user/disconnect-google`;
+};
+
+export const disconnectGoogle = async (
+  options?: RequestInit,
+): Promise<StatusResult> => {
+  return customFetch<StatusResult>(getDisconnectGoogleUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getDisconnectGoogleMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectGoogle>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disconnectGoogle>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["disconnectGoogle"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disconnectGoogle>>,
+    void
+  > = () => {
+    return disconnectGoogle(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DisconnectGoogleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disconnectGoogle>>
+>;
+
+export type DisconnectGoogleMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Remove the linked Google account
+ */
+export const useDisconnectGoogle = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectGoogle>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof disconnectGoogle>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getDisconnectGoogleMutationOptions(options));
+};
 
 export const getListBlogPostsUrl = () => {
   return `/api/blog`;

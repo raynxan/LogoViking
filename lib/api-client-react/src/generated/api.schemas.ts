@@ -195,11 +195,22 @@ export interface User {
   avatarUrl?: string | null;
   subscriptionStatus?: string | null;
   hasBilling?: boolean;
+  /** True if the account has a password set for email/password login */
+  hasPassword?: boolean;
+  /** True if the account is linked to a Google identity */
+  hasGoogle?: boolean;
 }
 
 export interface AuthResult {
   ok: boolean;
   user?: User;
+}
+
+export interface SetPasswordInput {
+  /** Required when the account already has a password. Omit for first-time set. */
+  currentPassword?: string;
+  /** New password, minimum 6 characters */
+  newPassword: string;
 }
 
 export interface UserResult {

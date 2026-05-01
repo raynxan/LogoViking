@@ -39,6 +39,7 @@ export * from "./metaTagInput";
 export * from "./metaTagResult";
 export * from "./registerInput";
 export * from "./robotsInput";
+export * from "./setPasswordInput";
 export * from "./sitemapInput";
 export * from "./socialSpecsResult";
 export * from "./socialSpecsResultPlatformsItem";

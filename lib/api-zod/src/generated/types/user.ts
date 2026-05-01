@@ -14,4 +14,8 @@ export interface User {
   avatarUrl?: string | null;
   subscriptionStatus?: string | null;
   hasBilling?: boolean;
+  /** True if the account has a password set for email/password login */
+  hasPassword?: boolean;
+  /** True if the account is linked to a Google identity */
+  hasGoogle?: boolean;
 }

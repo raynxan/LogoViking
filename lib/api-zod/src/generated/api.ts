@@ -288,6 +288,16 @@ export const RegisterResponse = zod.object({
       avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
       subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
       hasBilling: zod.boolean().optional(),
+      hasPassword: zod
+        .boolean()
+        .optional()
+        .describe(
+          "True if the account has a password set for email\/password login",
+        ),
+      hasGoogle: zod
+        .boolean()
+        .optional()
+        .describe("True if the account is linked to a Google identity"),
     })
     .optional(),
 });
@@ -308,6 +318,16 @@ export const LoginResponse = zod.object({
       avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
       subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
       hasBilling: zod.boolean().optional(),
+      hasPassword: zod
+        .boolean()
+        .optional()
+        .describe(
+          "True if the account has a password set for email\/password login",
+        ),
+      hasGoogle: zod
+        .boolean()
+        .optional()
+        .describe("True if the account is linked to a Google identity"),
     })
     .optional(),
 });
@@ -328,6 +348,16 @@ export const GetCurrentUserResponse = zod.object({
         avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
         subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
         hasBilling: zod.boolean().optional(),
+        hasPassword: zod
+          .boolean()
+          .optional()
+          .describe(
+            "True if the account has a password set for email\/password login",
+          ),
+        hasGoogle: zod
+          .boolean()
+          .optional()
+          .describe("True if the account is linked to a Google identity"),
       }),
       zod.null(),
     ])
@@ -343,6 +373,39 @@ export const GetUserHistoryResponse = zod.object({
       summary: zod.string(),
     }),
   ),
+});
+
+/**
+ * Lets a signed-in user add a password (e.g. so a Google-only account
+gains an email/password backup login) or change an existing one.
+When the user already has a password, `currentPassword` is required.
+
+ * @summary Set or change the password on the signed-in user's account
+ */
+export const SetUserPasswordBody = zod.object({
+  currentPassword: zod
+    .string()
+    .optional()
+    .describe(
+      "Required when the account already has a password. Omit for first-time set.",
+    ),
+  newPassword: zod.string().describe("New password, minimum 6 characters"),
+});
+
+export const SetUserPasswordResponse = zod.object({
+  ok: zod.boolean(),
+  message: zod.string().optional(),
+});
+
+/**
+ * Unlinks the Google account from the signed-in user. Only allowed when
+the account also has a password set, so the user keeps a way to sign in.
+
+ * @summary Remove the linked Google account
+ */
+export const DisconnectGoogleResponse = zod.object({
+  ok: zod.boolean(),
+  message: zod.string().optional(),
 });
 
 export const ListBlogPostsResponse = zod.object({

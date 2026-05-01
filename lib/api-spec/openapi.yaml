@@ -455,6 +455,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/HistoryListResult"
 
+  /user/set-password:
+    post:
+      operationId: setUserPassword
+      tags: [user]
+      summary: Set or change the password on the signed-in user's account
+      description: |
+        Lets a signed-in user add a password (e.g. so a Google-only account
+        gains an email/password backup login) or change an existing one.
+        When the user already has a password, `currentPassword` is required.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetPasswordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResult"
+
+  /user/disconnect-google:
+    post:
+      operationId: disconnectGoogle
+      tags: [user]
+      summary: Remove the linked Google account
+      description: |
+        Unlinks the Google account from the signed-in user. Only allowed when
+        the account also has a password set, so the user keeps a way to sign in.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResult"
+
   /blog:
     get:
       operationId: listBlogPosts
@@ -827,7 +866,20 @@ components:
             - { type: string }
             - { type: "null" }
         hasBilling: { type: boolean }
+        hasPassword: { type: boolean, description: "True if the account has a password set for email/password login" }
+        hasGoogle: { type: boolean, description: "True if the account is linked to a Google identity" }
       required: [id, name, email, plan]
+
+    SetPasswordInput:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: "Required when the account already has a password. Omit for first-time set."
+        newPassword:
+          type: string
+          description: "New password, minimum 6 characters"
+      required: [newPassword]
 
     UserResult:
       type: object

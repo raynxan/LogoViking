@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
 import { UserAvatar } from "@/components/auth/UserAvatar";
+import { AccountSecurityCard } from "@/components/auth/AccountSecurityCard";
 import {
   useGetUserHistory,
   getGetUserHistoryQueryKey,
@@ -165,6 +166,8 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      <AccountSecurityCard user={user} />
 
       <Card className="mb-12">
         <CardHeader><CardTitle>Recent activity</CardTitle></CardHeader>

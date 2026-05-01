@@ -101,6 +101,8 @@ export async function getUserFromRequest(req: Request) {
     avatarUrl: usersTable.avatarUrl,
     stripeCustomerId: usersTable.stripeCustomerId,
     subscriptionStatus: usersTable.subscriptionStatus,
+    passwordHash: usersTable.passwordHash,
+    googleId: usersTable.googleId,
   })
     .from(sessionsTable)
     .innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
@@ -122,6 +124,8 @@ export async function getUserFromRequest(req: Request) {
     plan,
     subscriptionStatus: status,
     hasBilling: Boolean(row.stripeCustomerId),
+    hasPassword: Boolean(row.passwordHash),
+    hasGoogle: Boolean(row.googleId),
   };
 }
 
