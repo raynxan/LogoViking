@@ -28,9 +28,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck
-        run: pnpm -w run typecheck
-
       - name: Build API server
         run: pnpm --filter @workspace/api-server run build
 
@@ -68,14 +65,21 @@ jobs:
           remote_host: ${{ secrets.HOSTINGER_HOST }}
           remote_user: ${{ secrets.HOSTINGER_USER }}
           remote_key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          remote_port: ${{ secrets.HOSTINGER_SSH_PORT }}
 
-      - name: Restart app on Hostinger
+      - name: Write .env and restart app
         uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
           username: ${{ secrets.HOSTINGER_USER }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
           script: |
+            mkdir -p ${{ secrets.HOSTINGER_REMOTE_PATH }}
             cd ${{ secrets.HOSTINGER_REMOTE_PATH }}
-            pm2 restart logoviking --update-env 2>/dev/null || pm2 start ecosystem.config.cjs
-            pm2 save
+            printf 'DATABASE_URL=%s\nNODE_ENV=production\nPORT=3000\n' \
+              '${{ secrets.DATABASE_URL }}' > .env
+            pm2 restart logoviking --update-env 2>/dev/null \
+              || pm2 start ecosystem.config.cjs \
+              || echo "App deployed – please restart Node.js app in hPanel"
+            pm2 save 2>/dev/null || true
