@@ -18,9 +18,9 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 max-w-screen-2xl items-center px-4 mx-auto">
+      <div className="container flex h-20 max-w-screen-2xl items-center px-4 mx-auto">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <img src="/images/logoviking-header.png" alt="LogoViking" className="h-10 w-auto" />
+          <img src="/images/logoviking-header.png" alt="LogoViking" className="h-14 md:h-16 w-auto" />
         </Link>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center space-x-6 text-sm font-medium">
