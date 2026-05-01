@@ -11,6 +11,8 @@ import {
   getGetUserHistoryQueryKey,
   useCreateBillingPortal,
   getGetCurrentUserQueryKey,
+  useGetBackgroundRemoverQuota,
+  getGetBackgroundRemoverQuotaQueryKey,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +26,14 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const { data: history } = useGetUserHistory({
     query: { queryKey: getGetUserHistoryQueryKey(), enabled: !!user }
+  });
+  const { data: bgQuota } = useGetBackgroundRemoverQuota({
+    query: {
+      queryKey: getGetBackgroundRemoverQuotaQueryKey(),
+      enabled: !!user,
+      refetchOnMount: "always",
+      staleTime: 0,
+    },
   });
   const portalMutation = useCreateBillingPortal();
 
@@ -122,6 +132,39 @@ export default function Dashboard() {
         <StatCard label="Tools used (last 20)" value={String(history?.items.length ?? 0)} />
         <StatCard label="Account email" value={user.email} small />
         <StatCard label="Plan" value={isPro ? "Pro" : "Free"} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        <Link
+          href="/tools/background-remover"
+          className="block hover-elevate rounded-md"
+          data-testid="link-bg-quota"
+        >
+          <Card className="h-full transition-colors hover:border-primary/40">
+            <CardContent className="p-5">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">
+                Background removals today
+              </div>
+              <div
+                className="mt-2 text-3xl font-bold"
+                data-testid="text-bg-quota"
+              >
+                {bgQuota
+                  ? `${bgQuota.used} / ${bgQuota.limit}`
+                  : "—"}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {bgQuota
+                  ? bgQuota.remaining > 0
+                    ? `${bgQuota.remaining} left — resets every 24h`
+                    : isPro
+                      ? "Daily limit reached — resets every 24h"
+                      : "Daily limit reached — upgrade to Pro for more"
+                  : "Loading…"}
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <Card className="mb-12">

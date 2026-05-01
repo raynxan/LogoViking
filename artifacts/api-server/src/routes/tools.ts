@@ -404,6 +404,39 @@ function peekAnonBgUsage(ip: string): number {
   return existing.count;
 }
 
+async function countUserBgUsage(userId: number): Promise<number> {
+  const since = new Date(Date.now() - BG_REMOVER_WINDOW_MS);
+  const rows = await db
+    .select({ count: sql<number>`cast(count(*) as int)` })
+    .from(usageHistoryTable)
+    .where(
+      and(
+        eq(usageHistoryTable.userId, userId),
+        eq(usageHistoryTable.tool, BG_REMOVER_TOOL),
+        gt(usageHistoryTable.createdAt, since),
+      ),
+    );
+  return Number(rows[0]?.count ?? 0);
+}
+
+router.get("/tools/background-remover/quota", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  const plan = user ? (user.plan === "pro" ? "pro" : "free") : "anonymous";
+  const limit = BG_REMOVER_LIMITS[plan];
+  const used = user
+    ? await countUserBgUsage(user.id)
+    : peekAnonBgUsage(req.ip ?? "unknown");
+  const remaining = Math.max(0, limit - used);
+  return res.json({
+    allowed: used < limit,
+    plan,
+    used,
+    limit,
+    remaining,
+    reason: used >= limit ? "limit_reached" : null,
+  });
+});
+
 router.post("/tools/background-remover/use", async (req, res) => {
   const user = await getUserFromRequest(req);
   const plan = user ? (user.plan === "pro" ? "pro" : "free") : "anonymous";
@@ -411,18 +444,7 @@ router.post("/tools/background-remover/use", async (req, res) => {
 
   let used: number;
   if (user) {
-    const since = new Date(Date.now() - BG_REMOVER_WINDOW_MS);
-    const rows = await db
-      .select({ count: sql<number>`cast(count(*) as int)` })
-      .from(usageHistoryTable)
-      .where(
-        and(
-          eq(usageHistoryTable.userId, user.id),
-          eq(usageHistoryTable.tool, BG_REMOVER_TOOL),
-          gt(usageHistoryTable.createdAt, since),
-        ),
-      );
-    const current = Number(rows[0]?.count ?? 0);
+    const current = await countUserBgUsage(user.id);
     if (current >= limit) {
       return res.json({
         allowed: false,

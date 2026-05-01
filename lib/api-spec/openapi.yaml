@@ -346,6 +346,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/SocialSpecsResult"
 
+  /tools/background-remover/quota:
+    get:
+      operationId: getBackgroundRemoverQuota
+      tags: [tools]
+      summary: Peek the current background-remover quota without consuming
+      description: |
+        Returns the same shape as `useBackgroundRemover` but without
+        incrementing the usage count. Use this to display "used / limit"
+        on the dashboard. `allowed` is true while there are uses left.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackgroundRemoverUseResult"
+
   /tools/background-remover/use:
     post:
       operationId: useBackgroundRemover

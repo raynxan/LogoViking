@@ -236,6 +236,29 @@ export const SocialResizerSpecsResponse = zod.object({
 });
 
 /**
+ * Returns the same shape as `useBackgroundRemover` but without
+incrementing the usage count. Use this to display "used / limit"
+on the dashboard. `allowed` is true while there are uses left.
+
+ * @summary Peek the current background-remover quota without consuming
+ */
+export const GetBackgroundRemoverQuotaResponse = zod.object({
+  allowed: zod.boolean(),
+  plan: zod.string().describe("anonymous | free | pro"),
+  used: zod.number().describe("Uses in the current 24h window after this call"),
+  limit: zod
+    .number()
+    .describe("Max uses allowed in a 24h window for this plan"),
+  remaining: zod
+    .number()
+    .describe("Uses left in the current 24h window after this call"),
+  reason: zod
+    .union([zod.string(), zod.null()])
+    .optional()
+    .describe("Set when allowed=false (e.g. 'limit_reached')"),
+});
+
+/**
  * Background removal runs in the user's browser via a WASM model, but a
 soft per-day quota is enforced server-side. Anonymous users are limited
 by IP, signed-in free users by account, and Pro users get the higher

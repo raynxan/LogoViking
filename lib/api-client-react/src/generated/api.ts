@@ -1577,6 +1577,89 @@ export const useSocialResizerSpecs = <
 };
 
 /**
+ * Returns the same shape as `useBackgroundRemover` but without
+incrementing the usage count. Use this to display "used / limit"
+on the dashboard. `allowed` is true while there are uses left.
+
+ * @summary Peek the current background-remover quota without consuming
+ */
+export const getGetBackgroundRemoverQuotaUrl = () => {
+  return `/api/tools/background-remover/quota`;
+};
+
+export const getBackgroundRemoverQuota = async (
+  options?: RequestInit,
+): Promise<BackgroundRemoverUseResult> => {
+  return customFetch<BackgroundRemoverUseResult>(
+    getGetBackgroundRemoverQuotaUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetBackgroundRemoverQuotaQueryKey = () => {
+  return [`/api/tools/background-remover/quota`] as const;
+};
+
+export const getGetBackgroundRemoverQuotaQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBackgroundRemoverQuota>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBackgroundRemoverQuota>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBackgroundRemoverQuotaQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getBackgroundRemoverQuota>>
+  > = ({ signal }) => getBackgroundRemoverQuota({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBackgroundRemoverQuota>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBackgroundRemoverQuotaQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBackgroundRemoverQuota>>
+>;
+export type GetBackgroundRemoverQuotaQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Peek the current background-remover quota without consuming
+ */
+
+export function useGetBackgroundRemoverQuota<
+  TData = Awaited<ReturnType<typeof getBackgroundRemoverQuota>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getBackgroundRemoverQuota>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBackgroundRemoverQuotaQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * Background removal runs in the user's browser via a WASM model, but a
 soft per-day quota is enforced server-side. Anonymous users are limited
 by IP, signed-in free users by account, and Pro users get the higher
