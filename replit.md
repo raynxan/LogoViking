@@ -25,3 +25,37 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+
+## Logoviking SaaS Artifact
+
+`artifacts/logoviking` is a production React+Vite SaaS frontend that hosts 26 creator/image/SEO tools, plus a 25-post blog, pricing, dashboard, auth, and full legal/marketing pages. It is paired with `artifacts/api-server`, which exposes the tool calculations, blog content, contact form, and auth endpoints under `/api/*`.
+
+### Routing (wouter)
+
+- `/` — landing page
+- `/tools` — tool grid + category filter + search
+- `/tools/:slug` — individual tool page (rendered through `components/tools/index.tsx` dispatcher → `ApiTools.tsx` for backend tools, `ImageTools.tsx` for client-side canvas tools)
+- `/blog`, `/blog/:slug` — blog list and post detail (content from `/api/blog`)
+- `/pricing`, `/dashboard`, `/login`, `/signup`
+- `/about`, `/contact`, `/faq`
+- `/privacy-policy`, `/terms-of-service`, `/cookie-policy`, `/disclaimer`, `/dmca` (share `_LegalLayout.tsx`)
+
+### Tool layout
+
+Every tool page uses `ToolPageLayout` (helmet meta + breadcrumb + ad slot + related tools sidebar). Result UI uses shared `ResultCard`, `CopyButton`, `CodeBlock`, `ListResult` from `components/tool/ResultParts.tsx`. Tool catalog + categories live in `lib/tools.ts`.
+
+### API tools (backed by api-server)
+
+Mutation hooks come from `@workspace/api-client-react` (orval-generated from `lib/api-spec/openapi.yaml`). Endpoints live at `artifacts/api-server/src/routes/{tools,blog,auth,user,contact,sitemap}.ts`. After editing `openapi.yaml`, run `pnpm --filter @workspace/api-spec run codegen`.
+
+### Image tools (client-side)
+
+Pure browser canvas operations (compress, resize, crop, convert, watermark, color picker, mock background remover). No upload — files stay local; output via `URL.createObjectURL`.
+
+### Auth
+
+Email + password, server-side session cookie, surface via `components/auth/AuthContext.tsx` (`useGetCurrentUser`). DB schema in `lib/db/src/schema/index.ts` (`usersTable`, `sessionsTable`, `usageHistoryTable`, `contactsTable`).
+
+### Theming
+
+Viking gold/amber primary, defined in `artifacts/logoviking/src/index.css`. Light/dark via `next-themes`. Logo + open graph in `artifacts/logoviking/public/images/`.

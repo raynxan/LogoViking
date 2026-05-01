@@ -1,22 +1,24 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Logoviking API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: tools
+  - name: auth
+  - name: user
+  - name: blog
+  - name: contact
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +26,784 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /tools/youtube-earnings:
+    post:
+      operationId: calcYoutubeEarnings
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YoutubeEarningsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningsResult"
+
+  /tools/tiktok-earnings:
+    post:
+      operationId: calcTiktokEarnings
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiktokEarningsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningsResult"
+
+  /tools/instagram-earnings:
+    post:
+      operationId: calcInstagramEarnings
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstagramEarningsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EarningsResult"
+
+  /tools/engagement-rate:
+    post:
+      operationId: calcEngagementRate
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EngagementRateInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EngagementRateResult"
+
+  /tools/thumbnail-downloader:
+    post:
+      operationId: downloadThumbnail
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThumbnailDownloadInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThumbnailDownloadResult"
+
+  /tools/channel-name-generator:
+    post:
+      operationId: generateChannelName
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/hashtag-generator:
+    post:
+      operationId: generateHashtags
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HashtagInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/caption-generator:
+    post:
+      operationId: generateCaption
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CaptionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/youtube-title-generator:
+    post:
+      operationId: generateYoutubeTitle
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/content-idea-generator:
+    post:
+      operationId: generateContentIdeas
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/thumbnail-text-generator:
+    post:
+      operationId: generateThumbnailText
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/ai-thumbnail-generator:
+    post:
+      operationId: generateAiThumbnail
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiThumbnailResult"
+
+  /tools/meta-tag-generator:
+    post:
+      operationId: generateMetaTags
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetaTagInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetaTagResult"
+
+  /tools/keyword-density:
+    post:
+      operationId: keywordDensity
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordDensityInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KeywordDensityResult"
+
+  /tools/seo-title-generator:
+    post:
+      operationId: generateSeoTitle
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringListResult"
+
+  /tools/sitemap-generator:
+    post:
+      operationId: generateSitemap
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SitemapInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringResult"
+
+  /tools/robots-txt-generator:
+    post:
+      operationId: generateRobotsTxt
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RobotsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StringResult"
+
+  /tools/social-media-resizer:
+    post:
+      operationId: socialResizerSpecs
+      tags: [tools]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialSpecsResult"
+
+  /tools/creator-kit:
+    post:
+      operationId: generateCreatorKit
+      tags: [tools]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeywordInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatorKitResult"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResult"
+
+  /user/me:
+    get:
+      operationId: getCurrentUser
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResult"
+
+  /user/history:
+    get:
+      operationId: getUserHistory
+      tags: [user]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryListResult"
+
+  /blog:
+    get:
+      operationId: listBlogPosts
+      tags: [blog]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogListResult"
+
+  /blog/{slug}:
+    get:
+      operationId: getBlogPost
+      tags: [blog]
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlogPost"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResult"
+
 components:
   schemas:
     HealthStatus:
       type: object
       properties:
-        status:
-          type: string
-      required:
-        - status
+        status: { type: string }
+      required: [status]
 
+    StatusResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        message: { type: string }
+      required: [ok]
+
+    StringResult:
+      type: object
+      properties:
+        value: { type: string }
+      required: [value]
+
+    StringListResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { type: string }
+      required: [items]
+
+    YoutubeEarningsInput:
+      type: object
+      properties:
+        views: { type: number }
+        cpm: { type: number }
+        engagementRate: { type: number }
+      required: [views]
+
+    TiktokEarningsInput:
+      type: object
+      properties:
+        views: { type: number }
+        followers: { type: number }
+      required: [views]
+
+    InstagramEarningsInput:
+      type: object
+      properties:
+        followers: { type: number }
+        engagementRate: { type: number }
+      required: [followers]
+
+    EarningsResult:
+      type: object
+      properties:
+        low: { type: number }
+        avg: { type: number }
+        high: { type: number }
+        currency: { type: string }
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              label: { type: string }
+              value: { type: string }
+            required: [label, value]
+      required: [low, avg, high, currency]
+
+    EngagementRateInput:
+      type: object
+      properties:
+        followers: { type: number }
+        likes: { type: number }
+        comments: { type: number }
+        shares: { type: number }
+      required: [followers, likes]
+
+    EngagementRateResult:
+      type: object
+      properties:
+        rate: { type: number }
+        rating: { type: string }
+        tip: { type: string }
+      required: [rate, rating]
+
+    ThumbnailDownloadInput:
+      type: object
+      properties:
+        url: { type: string }
+      required: [url]
+
+    ThumbnailDownloadResult:
+      type: object
+      properties:
+        videoId: { type: string }
+        thumbnails:
+          type: array
+          items:
+            type: object
+            properties:
+              quality: { type: string }
+              url: { type: string }
+            required: [quality, url]
+      required: [videoId, thumbnails]
+
+    KeywordInput:
+      type: object
+      properties:
+        keyword: { type: string }
+      required: [keyword]
+
+    HashtagInput:
+      type: object
+      properties:
+        keyword: { type: string }
+        platform: { type: string }
+      required: [keyword]
+
+    CaptionInput:
+      type: object
+      properties:
+        keyword: { type: string }
+        tone: { type: string }
+      required: [keyword]
+
+    AiThumbnailResult:
+      type: object
+      properties:
+        layouts:
+          type: array
+          items:
+            type: object
+            properties:
+              title: { type: string }
+              text: { type: string }
+              colors:
+                type: array
+                items: { type: string }
+              tip: { type: string }
+            required: [title, text, colors, tip]
+      required: [layouts]
+
+    MetaTagInput:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        url: { type: string }
+        image: { type: string }
+        keywords: { type: string }
+      required: [title, description]
+
+    MetaTagResult:
+      type: object
+      properties:
+        html: { type: string }
+      required: [html]
+
+    KeywordDensityInput:
+      type: object
+      properties:
+        text: { type: string }
+      required: [text]
+
+    KeywordDensityResult:
+      type: object
+      properties:
+        wordCount: { type: number }
+        keywords:
+          type: array
+          items:
+            type: object
+            properties:
+              word: { type: string }
+              count: { type: number }
+              density: { type: number }
+            required: [word, count, density]
+      required: [wordCount, keywords]
+
+    SitemapInput:
+      type: object
+      properties:
+        urls:
+          type: array
+          items: { type: string }
+      required: [urls]
+
+    RobotsInput:
+      type: object
+      properties:
+        allowAll: { type: boolean }
+        sitemapUrl: { type: string }
+        disallowed:
+          type: array
+          items: { type: string }
+      required: [allowAll]
+
+    SocialSpecsResult:
+      type: object
+      properties:
+        platforms:
+          type: array
+          items:
+            type: object
+            properties:
+              platform: { type: string }
+              specs:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    width: { type: number }
+                    height: { type: number }
+                  required: [name, width, height]
+            required: [platform, specs]
+      required: [platforms]
+
+    CreatorKitResult:
+      type: object
+      properties:
+        thumbnailIdea: { type: string }
+        title: { type: string }
+        hashtags:
+          type: array
+          items: { type: string }
+        caption: { type: string }
+      required: [thumbnailIdea, title, hashtags, caption]
+
+    RegisterInput:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        password: { type: string }
+      required: [name, email, password]
+
+    LoginInput:
+      type: object
+      properties:
+        email: { type: string }
+        password: { type: string }
+      required: [email, password]
+
+    AuthResult:
+      type: object
+      properties:
+        ok: { type: boolean }
+        user:
+          $ref: "#/components/schemas/User"
+      required: [ok]
+
+    User:
+      type: object
+      properties:
+        id: { type: number }
+        name: { type: string }
+        email: { type: string }
+        plan: { type: string }
+      required: [id, name, email, plan]
+
+    UserResult:
+      type: object
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+
+    HistoryItem:
+      type: object
+      properties:
+        id: { type: number }
+        tool: { type: string }
+        createdAt: { type: string }
+        summary: { type: string }
+      required: [id, tool, createdAt, summary]
+
+    HistoryListResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryItem"
+      required: [items]
+
+    BlogPostMeta:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        excerpt: { type: string }
+        category: { type: string }
+        readingTime: { type: number }
+      required: [slug, title, excerpt, category, readingTime]
+
+    BlogListResult:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlogPostMeta"
+      required: [items]
+
+    BlogPost:
+      type: object
+      properties:
+        slug: { type: string }
+        title: { type: string }
+        excerpt: { type: string }
+        category: { type: string }
+        readingTime: { type: number }
+        contentHtml: { type: string }
+      required: [slug, title, excerpt, category, readingTime, contentHtml]
+
+    ContactInput:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string }
+        subject: { type: string }
+        message: { type: string }
+      required: [name, email, message]

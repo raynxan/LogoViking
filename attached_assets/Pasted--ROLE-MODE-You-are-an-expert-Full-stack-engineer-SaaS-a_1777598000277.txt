@@ -1,0 +1,248 @@
+🧠 ROLE & MODE
+
+You are an expert:
+
+Full-stack engineer
+SaaS architect
+UI/UX designer
+SEO specialist
+
+You MUST work in 2 phases:
+
+Phase 1: PLAN (output first)
+System architecture
+Folder structure
+Tool breakdown
+Database schema
+SEO structure
+Deployment plan (Hostinger Node.js 22)
+Phase 2: BUILD
+Implement full working application
+Ensure production-ready code
+No placeholders
+
+DO NOT skip planning.
+
+🎯 PROJECT
+
+Build a production-ready SaaS platform:
+
+🏷️ Name:
+
+Logoviking.com
+
+🧩 Concept:
+
+All-in-one platform for:
+
+Image tools (like iLoveIMG but better)
+Creator tools (YouTube, TikTok, Instagram)
+SEO tools
+⚙️ CORE REQUIREMENTS
+🧱 TECH STACK
+Next.js (App Router)
+Tailwind CSS
+Node.js (compatible with Node 22)
+NextAuth (Google + email login)
+SQLite (or PostgreSQL-ready)
+Standalone build output
+⚠️ HOSTINGER COMPATIBILITY (CRITICAL)
+
+The app MUST:
+
+Use:
+output: "standalone"
+Include server.js
+Run with:
+npm run build
+npm start
+NOT use:
+Vercel-only features
+Edge functions
+Serverless-only APIs
+🎨 UI / UX
+
+Design like a modern SaaS:
+
+Clean, minimal (Stripe-style)
+Light / Dark mode toggle
+Sticky navbar
+Sidebar for tools
+Mobile responsive
+Fast loading
+Trust-focused layout
+🧰 TOOL SYSTEM
+🗜️ IMAGE TOOLS
+Compress Image (bulk + quality slider)
+Resize Image
+Crop Image
+Convert Image (JPG, PNG, WebP)
+Watermark Tool
+Background Remover (mock AI)
+🔥 SMART / AI IMAGE TOOLS
+Smart Image Optimizer
+AI Thumbnail Generator (topic → layout + text ideas)
+Thumbnail Text Generator
+Social Media Image Resizer (auto format for IG/YT/TikTok)
+🎥 CREATOR TOOLS
+YouTube Earnings Calculator
+TikTok Money Calculator
+Instagram Earnings Calculator
+Engagement Rate Calculator
+Thumbnail Downloader
+Channel Name Generator
+🚀 VIRAL GENERATORS
+Hashtag Generator
+Caption Generator
+YouTube Title Generator
+Content Idea Generator
+🔍 SEO TOOLS
+Meta Tag Generator
+Keyword Density Checker
+SEO Title Generator
+Sitemap Generator Tool
+Robots.txt Generator
+🧩 UNIQUE TOOL (IMPORTANT)
+All-in-One Creator Kit
+
+Input:
+
+Topic OR image
+
+Output:
+
+Thumbnail idea
+Title
+Hashtags
+Caption
+👤 USER SYSTEM
+Free users:
+No login required
+Limited daily usage
+Ads visible
+Logged-in users:
+Save history
+Higher limits
+Include:
+Signup/Login
+Google login
+Dashboard
+💰 MONETIZATION
+Add ad placeholders:
+Above tool
+Below tool
+After result (important)
+Pricing page:
+Free vs Premium
+📄 PAGES
+
+Create ALL:
+
+Home
+Tools (category view)
+Tool detail pages (dynamic routes)
+Pricing
+Blog
+About
+Contact
+FAQ
+Privacy Policy
+Terms
+Dashboard
+🔎 SEO SYSTEM (VERY IMPORTANT)
+Technical SEO:
+Dynamic meta tags
+Open Graph
+Canonical URLs
+Sitemaps (2 REQUIRED):
+/sitemap.xml
+/sitemap-index.xml
+Robots.txt:
+Allow all
+Link sitemap
+Schema:
+Organization
+WebApplication
+FAQ
+Internal Linking:
+
+Each tool page must link to:
+
+3–5 related tools
+📈 BLOG SYSTEM
+
+Generate 5 posts:
+
+Image compression guide
+YouTube earnings guide
+SEO tools guide
+Instagram growth tips
+Content creation tips
+⚡ PERFORMANCE
+Lighthouse score 90+
+Lazy loading
+Optimized assets
+🔐 SECURITY
+Rate limiting (free users)
+Input validation
+📦 PROJECT STRUCTURE
+
+Must include:
+
+/app
+/components
+/lib
+/public
+/styles
+/server.js
+/next.config.js
+/package.json
+/README.md
+.env.example
+🧪 VALIDATION BEFORE FINISH
+
+You MUST confirm:
+
+App builds:
+npm run build
+App runs:
+npm start
+All pages load
+All tools functional (mock logic allowed)
+No broken links
+📊 UX INTELLIGENCE (IMPORTANT)
+
+After each tool result:
+
+Suggest:
+
+Related tools
+Next actions
+
+Example:
+“Image compressed → generate hashtags or caption?”
+
+🚀 FINAL OUTPUT
+
+Deliver:
+
+Fully working SaaS app
+Clean modular code
+Ready for Hostinger Node.js 22 deployment
+README with setup instructions
+⚠️ RULES
+Do NOT leave placeholders
+Do NOT skip features
+Do NOT break navigation
+Everything must be connected and functional
+🧠 EXECUTION ORDER
+PLAN everything
+Show plan
+Then build step-by-step
+Then validate
+Then deliver final app
+✅ SUCCESS CRITERIA
+
+This should NOT look like a demo.
+
+It must look like a real startup product ready to launch and monetize.
