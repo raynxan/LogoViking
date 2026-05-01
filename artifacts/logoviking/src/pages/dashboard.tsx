@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
+import { UserAvatar } from "@/components/auth/UserAvatar";
 import {
   useGetUserHistory,
   getGetUserHistoryQueryKey,
@@ -94,9 +95,18 @@ export default function Dashboard() {
     <div className="container max-w-6xl mx-auto px-4 py-12">
       <Helmet><title>Dashboard — Logoviking</title></Helmet>
       <header className="flex items-start justify-between gap-4 mb-10">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight mb-2">Welcome back, {user.name}</h1>
-          <p className="text-muted-foreground">Here's a quick view of your activity.</p>
+        <div className="flex items-center gap-4">
+          <UserAvatar
+            name={user.name}
+            email={user.email}
+            avatarUrl={user.avatarUrl}
+            className="h-14 w-14 text-base"
+            data-testid="avatar-dashboard"
+          />
+          <div>
+            <h1 className="text-3xl font-extrabold tracking-tight mb-2">Welcome back, {user.name}</h1>
+            <p className="text-muted-foreground">Here's a quick view of your activity.</p>
+          </div>
         </div>
         <Badge
           variant={isPro ? "default" : "secondary"}

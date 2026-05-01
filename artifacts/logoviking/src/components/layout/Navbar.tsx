@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthContext";
-import { Moon, Sun, Menu, User, LogOut } from "lucide-react";
+import { UserAvatar } from "@/components/auth/UserAvatar";
+import { Moon, Sun, Menu, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -56,8 +57,19 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <User className="h-5 w-5" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full p-0 overflow-hidden"
+                    data-testid="button-user-menu"
+                    aria-label="Open user menu"
+                  >
+                    <UserAvatar
+                      name={user.name}
+                      email={user.email}
+                      avatarUrl={user.avatarUrl}
+                      className="h-8 w-8"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
