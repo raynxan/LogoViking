@@ -8,16 +8,16 @@ export function Footer() {
     <footer className="border-t bg-muted/40 py-12 md:py-16 mt-auto">
       <div className="container max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
         <div className="space-y-4">
-          <div className="font-bold text-lg text-primary flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <img
-              src="/images/logoviking-header.png"
-              alt="LogoViking"
-              className="h-16 w-auto"
-              style={{
-                filter:
-                  "drop-shadow(0 0 1px rgba(0,0,0,0.55)) drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
-              }}
+              src="/images/logoviking-icon.png"
+              alt=""
+              className="h-9 w-9 object-contain"
+              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}
             />
+            <span className="font-extrabold text-lg leading-none tracking-tight">
+              Logo<span className="text-amber-500">Viking</span>
+            </span>
           </div>
           <p className="text-muted-foreground leading-relaxed">
             Viking-grade tools for modern creators. Free, fast, and secure. No signup required.
