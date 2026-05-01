@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "fetch:bg-removal-data": "node scripts/fetch-bg-removal-data.mjs",
+    "predev": "node scripts/fetch-bg-removal-data.mjs",
+    "prebuild": "node scripts/fetch-bg-removal-data.mjs",
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",

@@ -942,7 +942,14 @@ export function BackgroundRemoverTool() {
     try {
       setStage("loading-model");
       const { removeBackground } = await import("@imgly/background-removal");
+      // Serve model + wasm from our own static assets (Vite public/) so first-time
+      // downloads come from infra we control instead of a third-party CDN.
+      const publicPath = new URL(
+        "bg-removal-data/",
+        new URL(import.meta.env.BASE_URL, window.location.origin),
+      ).toString();
       const blob = await removeBackground(img.file, {
+        publicPath,
         output: { format: "image/png", quality: 0.95 },
         progress: (key: string, current: number, total: number) => {
           setStage((prev) => (prev === "loading-model" && key.startsWith("compute") ? "removing" : prev));
@@ -983,7 +990,7 @@ export function BackgroundRemoverTool() {
           <div>
             <div className="font-medium text-foreground">Real AI cutouts, processed in your browser.</div>
             <div className="mt-0.5 text-muted-foreground">
-              We use an open-source neural network (~70 MB, downloaded once and cached). Your image never leaves your device.
+              First run downloads ~70 MB of AI model from our servers, then it's instant on every next photo. Your image never leaves your device.
               Free: {BG_FREE_LIMIT} per day · Pro: {BG_PRO_LIMIT_HINT} per day.
             </div>
           </div>
