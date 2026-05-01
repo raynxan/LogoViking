@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# @imgly/background-removal model data (downloaded at install/build time)
+artifacts/logoviking/public/bg-removal-data/
