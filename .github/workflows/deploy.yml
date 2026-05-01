@@ -1,0 +1,81 @@
+name: Build & Deploy to Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm -w run typecheck
+
+      - name: Build API server
+        run: pnpm --filter @workspace/api-server run build
+
+      - name: Build frontend
+        run: pnpm --filter @workspace/logoviking run build
+        env:
+          NODE_ENV: production
+          VITE_BASE_URL: /
+
+      - name: Assemble deploy bundle
+        run: |
+          rm -rf .deploy
+          mkdir -p .deploy/dist .deploy/public
+
+          cp -r artifacts/api-server/dist/. .deploy/dist/
+          cp -r artifacts/logoviking/dist/. .deploy/public/
+          cp ecosystem.config.cjs .deploy/
+
+          node -e "
+            const p = require('./artifacts/api-server/package.json');
+            require('fs').writeFileSync('.deploy/package.json', JSON.stringify({
+              name: p.name,
+              version: p.version,
+              type: 'module',
+              engines: { node: '>=20' }
+            }, null, 2));
+          "
+
+      - name: Upload bundle to Hostinger via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.env'
+          path: .deploy/
+          remote_path: ${{ secrets.HOSTINGER_REMOTE_PATH }}
+          remote_host: ${{ secrets.HOSTINGER_HOST }}
+          remote_user: ${{ secrets.HOSTINGER_USER }}
+          remote_key: ${{ secrets.HOSTINGER_SSH_KEY }}
+
+      - name: Restart app on Hostinger
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          script: |
+            cd ${{ secrets.HOSTINGER_REMOTE_PATH }}
+            pm2 restart logoviking --update-env 2>/dev/null || pm2 start ecosystem.config.cjs
+            pm2 save
