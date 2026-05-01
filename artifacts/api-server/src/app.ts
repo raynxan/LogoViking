@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
 import { ZodError } from "zod";
+import path from "path";
+import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { WebhookHandlers } from "./lib/webhookHandlers";
@@ -109,6 +111,15 @@ app.use("/api/contact", contactLimiter);
 app.use("/api/tools", toolsLimiter);
 
 app.use("/api", router);
+
+if (process.env.NODE_ENV === "production") {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const publicDir = path.resolve(__dirname, "../public");
+  app.use(express.static(publicDir, { maxAge: "1d", etag: true }));
+  app.get(/^(?!\/api).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+}
 
 app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof ZodError) {
