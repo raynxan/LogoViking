@@ -235,6 +235,31 @@ export const SocialResizerSpecsResponse = zod.object({
   ),
 });
 
+/**
+ * Background removal runs in the user's browser via a WASM model, but a
+soft per-day quota is enforced server-side. Anonymous users are limited
+by IP, signed-in free users by account, and Pro users get the higher
+cap. Call this BEFORE running the model; if `allowed` is false, do not
+process the image.
+
+ * @summary Check & consume one background-remover quota credit
+ */
+export const UseBackgroundRemoverResponse = zod.object({
+  allowed: zod.boolean(),
+  plan: zod.string().describe("anonymous | free | pro"),
+  used: zod.number().describe("Uses in the current 24h window after this call"),
+  limit: zod
+    .number()
+    .describe("Max uses allowed in a 24h window for this plan"),
+  remaining: zod
+    .number()
+    .describe("Uses left in the current 24h window after this call"),
+  reason: zod
+    .union([zod.string(), zod.null()])
+    .optional()
+    .describe("Set when allowed=false (e.g. 'limit_reached')"),
+});
+
 export const GenerateCreatorKitBody = zod.object({
   keyword: zod.string(),
 });

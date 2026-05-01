@@ -1,4 +1,7 @@
 import { Router, type IRouter } from "express";
+import { db, usageHistoryTable } from "@workspace/db";
+import { and, eq, gt, sql } from "drizzle-orm";
+import { getUserFromRequest } from "../lib/auth";
 import {
   CalcYoutubeEarningsBody,
   CalcTiktokEarningsBody,
@@ -367,6 +370,99 @@ router.post("/tools/robots-txt-generator", async (req, res) => {
   }
   await logHistory(req, "robots-txt-generator", body.allowAll ? "Allow all" : "Disallow all");
   return res.json({ value });
+});
+
+const BG_REMOVER_TOOL = "background-remover";
+const BG_REMOVER_LIMITS: Record<string, number> = {
+  anonymous: 3,
+  free: 5,
+  pro: 100,
+};
+const BG_REMOVER_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+interface AnonUsage {
+  count: number;
+  resetAt: number;
+}
+const anonBgUsage = new Map<string, AnonUsage>();
+
+function recordAnonBgUsage(ip: string): number {
+  const now = Date.now();
+  const existing = anonBgUsage.get(ip);
+  if (!existing || existing.resetAt <= now) {
+    anonBgUsage.set(ip, { count: 1, resetAt: now + BG_REMOVER_WINDOW_MS });
+    return 1;
+  }
+  existing.count += 1;
+  return existing.count;
+}
+
+function peekAnonBgUsage(ip: string): number {
+  const now = Date.now();
+  const existing = anonBgUsage.get(ip);
+  if (!existing || existing.resetAt <= now) return 0;
+  return existing.count;
+}
+
+router.post("/tools/background-remover/use", async (req, res) => {
+  const user = await getUserFromRequest(req);
+  const plan = user ? (user.plan === "pro" ? "pro" : "free") : "anonymous";
+  const limit = BG_REMOVER_LIMITS[plan];
+
+  let used: number;
+  if (user) {
+    const since = new Date(Date.now() - BG_REMOVER_WINDOW_MS);
+    const rows = await db
+      .select({ count: sql<number>`cast(count(*) as int)` })
+      .from(usageHistoryTable)
+      .where(
+        and(
+          eq(usageHistoryTable.userId, user.id),
+          eq(usageHistoryTable.tool, BG_REMOVER_TOOL),
+          gt(usageHistoryTable.createdAt, since),
+        ),
+      );
+    const current = Number(rows[0]?.count ?? 0);
+    if (current >= limit) {
+      return res.json({
+        allowed: false,
+        plan,
+        used: current,
+        limit,
+        remaining: 0,
+        reason: "limit_reached",
+      });
+    }
+    await db.insert(usageHistoryTable).values({
+      userId: user.id,
+      tool: BG_REMOVER_TOOL,
+      summary: "Removed image background",
+    });
+    used = current + 1;
+  } else {
+    const ip = req.ip ?? "unknown";
+    const current = peekAnonBgUsage(ip);
+    if (current >= limit) {
+      return res.json({
+        allowed: false,
+        plan,
+        used: current,
+        limit,
+        remaining: 0,
+        reason: "limit_reached",
+      });
+    }
+    used = recordAnonBgUsage(ip);
+  }
+
+  return res.json({
+    allowed: true,
+    plan,
+    used,
+    limit,
+    remaining: Math.max(0, limit - used),
+    reason: null,
+  });
 });
 
 router.post("/tools/social-media-resizer", async (req, res) => {

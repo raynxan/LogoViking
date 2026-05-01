@@ -9,6 +9,7 @@
 export * from "./aiThumbnailResult";
 export * from "./aiThumbnailResultLayoutsItem";
 export * from "./authResult";
+export * from "./backgroundRemoverUseResult";
 export * from "./billingCheckoutInput";
 export * from "./billingPlan";
 export * from "./billingPlansResult";

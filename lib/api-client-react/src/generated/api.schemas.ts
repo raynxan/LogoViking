@@ -155,6 +155,20 @@ export interface SocialSpecsResult {
   platforms: SocialSpecsResultPlatformsItem[];
 }
 
+export interface BackgroundRemoverUseResult {
+  allowed: boolean;
+  /** anonymous | free | pro */
+  plan: string;
+  /** Uses in the current 24h window after this call */
+  used: number;
+  /** Max uses allowed in a 24h window for this plan */
+  limit: number;
+  /** Uses left in the current 24h window after this call */
+  remaining: number;
+  /** Set when allowed=false (e.g. 'limit_reached') */
+  reason?: string | null;
+}
+
 export interface CreatorKitResult {
   thumbnailIdea: string;
   title: string;

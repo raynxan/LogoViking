@@ -50,7 +50,9 @@ Mutation hooks come from `@workspace/api-client-react` (orval-generated from `li
 
 ### Image tools (client-side)
 
-Pure browser canvas operations (compress, resize, crop, convert, watermark, color picker, mock background remover). No upload — files stay local; output via `URL.createObjectURL`.
+Pure browser canvas operations (compress, resize, crop, convert, watermark, color picker). No upload — files stay local; output via `URL.createObjectURL`.
+
+The Background Remover uses `@imgly/background-removal` (an ONNX U-Net model, ~70 MB, downloaded from CDN on first use and cached) running entirely in the browser. Server-side soft quota enforced via `POST /api/tools/background-remover/use` in `routes/tools.ts`: anonymous=3/day per IP (in-memory map), free=5/day per user, pro=100/day per user (counted from `usage_history` rows with `tool="background-remover"` in the last 24h). The component (`ImageTools.tsx::BackgroundRemoverTool`) calls `useUseBackgroundRemover` first; only runs the model when `allowed=true`. On `limit_reached` it shows an upgrade-to-Pro CTA linking to `/pricing`.
 
 ### Auth
 

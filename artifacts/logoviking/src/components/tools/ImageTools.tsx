@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Download, Upload, RotateCcw, RotateCw, Maximize2 } from "lucide-react";
+import { Loader2, Download, Upload, RotateCcw, RotateCw, Maximize2, Sparkles, AlertCircle } from "lucide-react";
 import { ResultCard } from "@/components/tool/ResultParts";
 import { cn } from "@/lib/utils";
+import { useUseBackgroundRemover, type BackgroundRemoverUseResult } from "@workspace/api-client-react";
 
 interface UploadedImage {
   file: File;
@@ -886,70 +888,160 @@ export function WatermarkTool() {
   );
 }
 
-// ─────────── Background Remover (mock — desaturate edges) ───────────
+// ─────────── Background Remover (real AI — @imgly/background-removal in browser) ───────────
+type BgStage = "idle" | "checking" | "loading-model" | "removing" | "done" | "error";
+
 export function BackgroundRemoverTool() {
   const [img, setImg] = useState<UploadedImage | null>(null);
   const [result, setResult] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [stage, setStage] = useState<BgStage>("idle");
+  const [progress, setProgress] = useState<{ current: number; total: number; label: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<BackgroundRemoverUseResult | null>(null);
+  const useQuota = useUseBackgroundRemover();
+
+  const busy = stage === "checking" || stage === "loading-model" || stage === "removing";
+
+  function reset() {
+    setImg(null);
+    setResult(null);
+    setStage("idle");
+    setProgress(null);
+    setError(null);
+  }
 
   async function process() {
     if (!img) return;
-    setBusy(true);
+    setError(null);
+    setResult(null);
+    setProgress(null);
+    setStage("checking");
+
+    let q: BackgroundRemoverUseResult;
     try {
-      const c = document.createElement("canvas");
-      c.width = img.width; c.height = img.height;
-      const ctx = c.getContext("2d")!;
-      const i = new Image(); i.src = img.url;
-      await new Promise(r => { i.onload = r; });
-      ctx.drawImage(i, 0, 0);
-      const data = ctx.getImageData(0, 0, c.width, c.height);
-      // Simple mock: desaturate pixels near image borders
-      const cx = c.width / 2, cy = c.height / 2, r = Math.min(cx, cy) * 0.65;
-      for (let y = 0; y < c.height; y++) {
-        for (let x = 0; x < c.width; x++) {
-          const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-          if (dist > r) {
-            const idx = (y * c.width + x) * 4;
-            const gray = data.data[idx] * 0.3 + data.data[idx + 1] * 0.59 + data.data[idx + 2] * 0.11;
-            const t = Math.min(1, (dist - r) / (Math.min(cx, cy) - r));
-            data.data[idx] = data.data[idx] * (1 - t) + gray * t * 0.4;
-            data.data[idx + 1] = data.data[idx + 1] * (1 - t) + gray * t * 0.4;
-            data.data[idx + 2] = data.data[idx + 2] * (1 - t) + gray * t * 0.4;
-            data.data[idx + 3] = Math.max(0, data.data[idx + 3] * (1 - t * 0.85));
-          }
-        }
-      }
-      ctx.putImageData(data, 0, 0);
-      const blob = await canvasToBlob(c, "image/png");
-      setResult(URL.createObjectURL(blob));
-    } finally { setBusy(false); }
+      q = await useQuota.mutateAsync();
+    } catch (e) {
+      setStage("error");
+      setError("Couldn't reach the server. Please try again.");
+      return;
+    }
+    setQuota(q);
+
+    if (!q.allowed) {
+      setStage("error");
+      setError(
+        q.plan === "anonymous"
+          ? `You've used your ${q.limit} free background removals for today. Sign in for more, or upgrade to Pro.`
+          : q.plan === "free"
+            ? `You've used all ${q.limit} background removals for today. Upgrade to Pro for ${BG_PRO_LIMIT_HINT} per day.`
+            : `Daily limit of ${q.limit} reached. It will reset in 24h.`,
+      );
+      return;
+    }
+
+    try {
+      setStage("loading-model");
+      const { removeBackground } = await import("@imgly/background-removal");
+      const blob = await removeBackground(img.file, {
+        output: { format: "image/png", quality: 0.95 },
+        progress: (key: string, current: number, total: number) => {
+          setStage((prev) => (prev === "loading-model" && key.startsWith("compute") ? "removing" : prev));
+          setProgress({ current, total, label: key });
+        },
+      });
+      const url = URL.createObjectURL(blob);
+      setResult(url);
+      setStage("done");
+      setProgress(null);
+    } catch (e) {
+      console.error("Background removal failed", e);
+      setStage("error");
+      setError(
+        e instanceof Error && e.message
+          ? `Background removal failed: ${e.message}`
+          : "Background removal failed. Please try a different image.",
+      );
+    }
   }
+
+  const stageLabel = (() => {
+    if (stage === "checking") return "Checking quota…";
+    if (stage === "loading-model") return progress
+      ? `Downloading AI model (${Math.round((progress.current / Math.max(1, progress.total)) * 100)}%)…`
+      : "Downloading AI model…";
+    if (stage === "removing") return progress && progress.total > 0
+      ? `Removing background (${Math.round((progress.current / progress.total) * 100)}%)…`
+      : "Removing background…";
+    return "Remove background";
+  })();
 
   return (
     <>
       <Card><CardContent className="pt-6 space-y-4">
-        <div className="text-xs px-3 py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300">
-          AI-powered background removal is coming soon. The current preview applies a smart edge-fade to highlight your subject.
+        <div className="text-xs px-3 py-2 rounded-md bg-primary/10 border border-primary/30 text-foreground/80 flex items-start gap-2">
+          <Sparkles className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+          <div>
+            <div className="font-medium text-foreground">Real AI cutouts, processed in your browser.</div>
+            <div className="mt-0.5 text-muted-foreground">
+              We use an open-source neural network (~70 MB, downloaded once and cached). Your image never leaves your device.
+              Free: {BG_FREE_LIMIT} per day · Pro: {BG_PRO_LIMIT_HINT} per day.
+            </div>
+          </div>
         </div>
+
         {!img ? <FilePicker onFile={setImg} /> : (
           <>
-            <div className="text-sm">{img.file.name}</div>
-            <div className="flex gap-2">
-              <Button onClick={process} disabled={busy} size="lg">{busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}Process image</Button>
-              <Button variant="outline" onClick={() => { setImg(null); setResult(null); }}>Choose another</Button>
+            <div className="text-sm">{img.file.name} — {img.width}×{img.height} · {bytesToReadable(img.file.size)}</div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button onClick={process} disabled={busy} size="lg">
+                {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {stageLabel}
+              </Button>
+              <Button variant="outline" onClick={reset} disabled={busy}>Choose another</Button>
+              {quota && quota.allowed && (
+                <span className="text-xs text-muted-foreground ml-1">
+                  {quota.remaining} of {quota.limit} left today
+                </span>
+              )}
             </div>
+            {busy && progress && progress.total > 0 && (
+              <div className="h-2 w-full rounded bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-[width]"
+                  style={{ width: `${Math.min(100, (progress.current / progress.total) * 100)}%` }}
+                />
+              </div>
+            )}
+            {error && (
+              <div className="text-sm px-3 py-2 rounded-md bg-destructive/10 border border-destructive/30 text-destructive flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <div>{error}</div>
+                  {quota && !quota.allowed && quota.plan !== "pro" && (
+                    <Link href="/pricing">
+                      <Button size="sm" className="mt-2" variant="default">Upgrade to Pro</Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent></Card>
       {img && result && (
-        <ResultCard title="Subject highlighted">
-          <BeforeAfter before={img.url} after={result} />
-          <Button className="mt-4" onClick={() => downloadDataUrl(result, `bg-removed-${img.file.name.replace(/\.[^.]+$/, "")}.png`)}><Download className="h-4 w-4 mr-2" />Download PNG</Button>
+        <ResultCard title="Background removed (transparent PNG)">
+          <BeforeAfter before={img.url} after={result} afterLabel="Cutout" />
+          <Button className="mt-4" onClick={() => downloadDataUrl(result, `bg-removed-${img.file.name.replace(/\.[^.]+$/, "")}.png`)}>
+            <Download className="h-4 w-4 mr-2" />Download PNG
+          </Button>
         </ResultCard>
       )}
     </>
   );
 }
+
+const BG_FREE_LIMIT = 5;
+const BG_PRO_LIMIT_HINT = 100;
 
 // ─────────── Smart Optimizer ───────────
 export function SmartOptimizerTool() {

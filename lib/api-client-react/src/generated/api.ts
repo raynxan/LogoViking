@@ -19,6 +19,7 @@ import type {
 import type {
   AiThumbnailResult,
   AuthResult,
+  BackgroundRemoverUseResult,
   BillingCheckoutInput,
   BillingPlansResult,
   BillingRedirectResult,
@@ -1572,6 +1573,93 @@ export const useSocialResizerSpecs = <
   TContext
 > => {
   return useMutation(getSocialResizerSpecsMutationOptions(options));
+};
+
+/**
+ * Background removal runs in the user's browser via a WASM model, but a
+soft per-day quota is enforced server-side. Anonymous users are limited
+by IP, signed-in free users by account, and Pro users get the higher
+cap. Call this BEFORE running the model; if `allowed` is false, do not
+process the image.
+
+ * @summary Check & consume one background-remover quota credit
+ */
+export const getUseBackgroundRemoverUrl = () => {
+  return `/api/tools/background-remover/use`;
+};
+
+export const useBackgroundRemover = async (
+  options?: RequestInit,
+): Promise<BackgroundRemoverUseResult> => {
+  return customFetch<BackgroundRemoverUseResult>(getUseBackgroundRemoverUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getUseBackgroundRemoverMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof useBackgroundRemover>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof useBackgroundRemover>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["useBackgroundRemover"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof useBackgroundRemover>>,
+    void
+  > = () => {
+    return useBackgroundRemover(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UseBackgroundRemoverMutationResult = NonNullable<
+  Awaited<ReturnType<typeof useBackgroundRemover>>
+>;
+
+export type UseBackgroundRemoverMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Check & consume one background-remover quota credit
+ */
+export const useUseBackgroundRemover = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof useBackgroundRemover>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof useBackgroundRemover>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getUseBackgroundRemoverMutationOptions(options));
 };
 
 export const getGenerateCreatorKitUrl = () => {

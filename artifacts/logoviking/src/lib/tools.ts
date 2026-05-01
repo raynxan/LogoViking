@@ -117,13 +117,13 @@ export const TOOLS: ToolDef[] = [
     slug: "background-remover",
     name: "Background Remover",
     category: "IMAGE TOOLS",
-    shortDesc: "Remove image backgrounds",
-    longDesc: "Instantly remove backgrounds from your images. (AI removal coming soon - currently desaturates background).",
+    shortDesc: "Real AI cutouts, free in your browser",
+    longDesc: "Get a true transparent-PNG cutout of any photo. Powered by an open-source neural network that runs entirely in your browser — your image is never uploaded. The model (~70 MB) is downloaded once and cached, so the first run takes ~10–30s and subsequent runs are fast. Free: 5 cutouts per day · Pro: 100 per day.",
     icon: Scissors,
     inputType: "file",
     related: ["crop", "watermark", "smart-optimizer"],
-    seoTitle: "Free Image Background Remover - LogoViking",
-    seoDesc: "Remove backgrounds from your images quickly online."
+    seoTitle: "Free AI Image Background Remover - LogoViking",
+    seoDesc: "Remove backgrounds from your images with a real AI model that runs in your browser. True transparent PNG output, no upload required."
   },
 
   // SMART/AI IMAGE TOOLS

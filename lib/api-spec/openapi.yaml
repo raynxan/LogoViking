@@ -346,6 +346,25 @@ paths:
               schema:
                 $ref: "#/components/schemas/SocialSpecsResult"
 
+  /tools/background-remover/use:
+    post:
+      operationId: useBackgroundRemover
+      tags: [tools]
+      summary: Check & consume one background-remover quota credit
+      description: |
+        Background removal runs in the user's browser via a WASM model, but a
+        soft per-day quota is enforced server-side. Anonymous users are limited
+        by IP, signed-in free users by account, and Pro users get the higher
+        cap. Call this BEFORE running the model; if `allowed` is false, do not
+        process the image.
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackgroundRemoverUseResult"
+
   /tools/creator-kit:
     post:
       operationId: generateCreatorKit
@@ -742,6 +761,21 @@ components:
                   required: [name, width, height]
             required: [platform, specs]
       required: [platforms]
+
+    BackgroundRemoverUseResult:
+      type: object
+      properties:
+        allowed: { type: boolean }
+        plan: { type: string, description: "anonymous | free | pro" }
+        used: { type: number, description: "Uses in the current 24h window after this call" }
+        limit: { type: number, description: "Max uses allowed in a 24h window for this plan" }
+        remaining: { type: number, description: "Uses left in the current 24h window after this call" }
+        reason:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+          description: "Set when allowed=false (e.g. 'limit_reached')"
+      required: [allowed, plan, used, limit, remaining]
 
     CreatorKitResult:
       type: object
