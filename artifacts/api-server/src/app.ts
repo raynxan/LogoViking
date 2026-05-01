@@ -6,8 +6,36 @@ import rateLimit from "express-rate-limit";
 import { ZodError } from "zod";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { WebhookHandlers } from "./lib/webhookHandlers";
 
 const app: Express = express();
+
+// Stripe webhook MUST be registered before express.json() so the raw body Buffer is preserved
+// for signature verification.
+app.post(
+  "/api/stripe/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const signature = req.headers["stripe-signature"];
+    if (!signature) {
+      return res.status(400).json({ error: "Missing stripe-signature" });
+    }
+    try {
+      const sig = Array.isArray(signature) ? signature[0] : signature;
+      if (!Buffer.isBuffer(req.body)) {
+        logger.error(
+          "Stripe webhook body is not a Buffer; express.json() ran too early.",
+        );
+        return res.status(500).json({ error: "Webhook processing error" });
+      }
+      await WebhookHandlers.processWebhook(req.body as Buffer, sig);
+      return res.status(200).json({ received: true });
+    } catch (err) {
+      logger.error({ err }, "Stripe webhook processing failed");
+      return res.status(400).json({ error: "Webhook processing error" });
+    }
+  },
+);
 
 app.set("trust proxy", 1);
 
@@ -96,7 +124,7 @@ app.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
   if (status >= 500) {
     req.log?.error({ err }, "Unhandled error");
   }
-  res.status(status).json({ ok: false, error: message });
+  return res.status(status).json({ ok: false, error: message });
 });
 
 export default app;

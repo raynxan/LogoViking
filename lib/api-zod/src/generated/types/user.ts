@@ -12,4 +12,6 @@ export interface User {
   email: string;
   plan: string;
   avatarUrl?: string | null;
+  subscriptionStatus?: string | null;
+  hasBilling?: boolean;
 }

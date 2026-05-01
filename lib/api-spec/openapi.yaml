@@ -13,6 +13,7 @@ tags:
   - name: user
   - name: blog
   - name: contact
+  - name: billing
 paths:
   /healthz:
     get:
@@ -482,6 +483,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/StatusResult"
 
+  /billing/plans:
+    get:
+      operationId: listBillingPlans
+      tags: [billing]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingPlansResult"
+
+  /billing/checkout:
+    post:
+      operationId: createBillingCheckout
+      tags: [billing]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillingCheckoutInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRedirectResult"
+
+  /billing/portal:
+    post:
+      operationId: createBillingPortal
+      tags: [billing]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingRedirectResult"
+
 components:
   schemas:
     HealthStatus:
@@ -745,6 +788,11 @@ components:
           oneOf:
             - { type: string }
             - { type: "null" }
+        subscriptionStatus:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        hasBilling: { type: boolean }
       required: [id, name, email, plan]
 
     UserResult:
@@ -811,3 +859,51 @@ components:
         subject: { type: string }
         message: { type: string }
       required: [name, email, message]
+
+    BillingPrice:
+      type: object
+      properties:
+        id: { type: string }
+        unitAmount: { type: number }
+        currency: { type: string }
+        interval:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+      required: [id, unitAmount, currency]
+
+    BillingPlan:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description:
+          oneOf:
+            - { type: string }
+            - { type: "null" }
+        prices:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingPrice"
+      required: [id, name, prices]
+
+    BillingPlansResult:
+      type: object
+      properties:
+        configured: { type: boolean }
+        plans:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingPlan"
+      required: [configured, plans]
+
+    BillingCheckoutInput:
+      type: object
+      properties:
+        priceId: { type: string }
+
+    BillingRedirectResult:
+      type: object
+      properties:
+        url: { type: string }
+      required: [url]

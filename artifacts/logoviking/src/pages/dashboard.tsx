@@ -1,17 +1,43 @@
 import { Link } from "wouter";
 import { Helmet } from "react-helmet-async";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthContext";
-import { useGetUserHistory, getGetUserHistoryQueryKey } from "@workspace/api-client-react";
+import {
+  useGetUserHistory,
+  getGetUserHistoryQueryKey,
+  useCreateBillingPortal,
+  getGetCurrentUserQueryKey,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { TOOLS } from "@/lib/tools";
 
 export default function Dashboard() {
   const { user, isLoading } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: history } = useGetUserHistory({
     query: { queryKey: getGetUserHistoryQueryKey(), enabled: !!user }
   });
+  const portalMutation = useCreateBillingPortal();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      toast({
+        title: "Welcome to Pro!",
+        description: "Your subscription is active. Enjoy the new perks.",
+      });
+      queryClient.invalidateQueries({ queryKey: getGetCurrentUserQueryKey() });
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+    }
+  }, [toast, queryClient]);
 
   if (isLoading) {
     return <div className="container max-w-4xl mx-auto px-4 py-16 text-center text-muted-foreground">Loading…</div>;
@@ -36,6 +62,33 @@ export default function Dashboard() {
   }
 
   const featured = TOOLS.slice(0, 6);
+  const isPro = user.plan === "pro";
+  const canManageBilling = Boolean(user.hasBilling);
+
+  const handleManageBilling = () => {
+    portalMutation.mutate(undefined, {
+      onSuccess: (res) => {
+        if (res?.url) {
+          window.location.href = res.url;
+        } else {
+          toast({
+            title: "Couldn't open billing portal",
+            description: "Try again in a moment.",
+            variant: "destructive",
+          });
+        }
+      },
+      onError: (err) => {
+        const message =
+          (err as { message?: string })?.message ?? "Try again in a moment.";
+        toast({
+          title: "Couldn't open billing portal",
+          description: message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-12">
@@ -45,14 +98,63 @@ export default function Dashboard() {
           <h1 className="text-3xl font-extrabold tracking-tight mb-2">Welcome back, {user.name}</h1>
           <p className="text-muted-foreground">Here's a quick view of your activity.</p>
         </div>
-        <Badge variant="secondary" className="uppercase">{user.plan} plan</Badge>
+        <Badge
+          variant={isPro ? "default" : "secondary"}
+          className="uppercase"
+          data-testid="badge-plan"
+        >
+          {user.plan} plan
+        </Badge>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <StatCard label="Tools used (last 20)" value={String(history?.items.length ?? 0)} />
         <StatCard label="Account email" value={user.email} small />
-        <StatCard label="Plan" value={user.plan === "pro" ? "Pro" : "Free"} />
+        <StatCard label="Plan" value={isPro ? "Pro" : "Free"} />
       </div>
+
+      <Card className="mb-12">
+        <CardHeader>
+          <CardTitle>Subscription</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="text-sm text-muted-foreground">
+            {isPro ? (
+              <>
+                You're on the <span className="font-medium text-foreground">Pro plan</span>. Manage payment method, invoices, or cancel anytime.
+              </>
+            ) : (
+              <>
+                You're on the <span className="font-medium text-foreground">Free plan</span>. Upgrade to remove ads, unlock priority support, and more.
+              </>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {isPro ? null : (
+              <Button asChild data-testid="button-go-pricing">
+                <Link href="/pricing">Upgrade to Pro</Link>
+              </Button>
+            )}
+            {canManageBilling && (
+              <Button
+                variant="outline"
+                onClick={handleManageBilling}
+                disabled={portalMutation.isPending}
+                data-testid="button-manage-billing"
+              >
+                {portalMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Opening…
+                  </>
+                ) : (
+                  "Manage billing"
+                )}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="mb-12">
         <CardHeader><CardTitle>Recent activity</CardTitle></CardHeader>

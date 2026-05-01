@@ -8,6 +8,9 @@ export const usersTable = pgTable("users", {
   googleId: varchar("google_id", { length: 64 }).unique(),
   avatarUrl: text("avatar_url"),
   plan: varchar("plan", { length: 16 }).notNull().default("free"),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 64 }).unique(),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 64 }),
+  subscriptionStatus: varchar("subscription_status", { length: 32 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import crypto from "node:crypto";
 import { db, usersTable, sessionsTable } from "@workspace/db";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, sql } from "drizzle-orm";
 
 const SESSION_COOKIE = "lv_session";
 const SESSION_DAYS = 30;
@@ -49,6 +49,47 @@ export async function clearSession(req: Request, res: Response) {
   res.clearCookie(SESSION_COOKIE, { path: "/" });
 }
 
+const ACTIVE_SUB_STATUSES = new Set(["active", "trialing", "past_due"]);
+
+async function syncUserPlanFromStripe(
+  userId: number,
+  stripeCustomerId: string | null,
+): Promise<{ plan: string; status: string | null; subscriptionId: string | null }> {
+  if (!stripeCustomerId) {
+    return { plan: "free", status: null, subscriptionId: null };
+  }
+  let latest: { id: string; status: string } | null = null;
+  try {
+    const result = await db.execute<{ id: string; status: string }>(sql`
+      SELECT id, status
+      FROM stripe.subscriptions
+      WHERE customer = ${stripeCustomerId}
+      ORDER BY created DESC NULLS LAST
+      LIMIT 1
+    `);
+    latest = result.rows[0] ?? null;
+  } catch {
+    // stripe schema may not exist yet on first boot; fall through
+    return { plan: "free", status: null, subscriptionId: null };
+  }
+
+  const desiredPlan =
+    latest && ACTIVE_SUB_STATUSES.has(latest.status) ? "pro" : "free";
+  const desiredStatus = latest?.status ?? null;
+  const desiredSubId = latest?.id ?? null;
+
+  await db
+    .update(usersTable)
+    .set({
+      plan: desiredPlan,
+      subscriptionStatus: desiredStatus,
+      stripeSubscriptionId: desiredSubId,
+    })
+    .where(eq(usersTable.id, userId));
+
+  return { plan: desiredPlan, status: desiredStatus, subscriptionId: desiredSubId };
+}
+
 export async function getUserFromRequest(req: Request) {
   const token = req.cookies?.[SESSION_COOKIE];
   if (!token) return null;
@@ -58,12 +99,30 @@ export async function getUserFromRequest(req: Request) {
     email: usersTable.email,
     plan: usersTable.plan,
     avatarUrl: usersTable.avatarUrl,
+    stripeCustomerId: usersTable.stripeCustomerId,
+    subscriptionStatus: usersTable.subscriptionStatus,
   })
     .from(sessionsTable)
     .innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
     .where(and(eq(sessionsTable.token, hashSessionToken(token)), gt(sessionsTable.expiresAt, new Date())))
     .limit(1);
-  return rows[0] ?? null;
+  const row = rows[0];
+  if (!row) return null;
+
+  const { plan, status } = await syncUserPlanFromStripe(
+    row.id,
+    row.stripeCustomerId,
+  );
+
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    avatarUrl: row.avatarUrl,
+    plan,
+    subscriptionStatus: status,
+    hasBilling: Boolean(row.stripeCustomerId),
+  };
 }
 
 const OAUTH_STATE_COOKIE = "lv_oauth_state";

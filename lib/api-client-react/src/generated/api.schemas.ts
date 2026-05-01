@@ -179,6 +179,8 @@ export interface User {
   email: string;
   plan: string;
   avatarUrl?: string | null;
+  subscriptionStatus?: string | null;
+  hasBilling?: boolean;
 }
 
 export interface AuthResult {
@@ -227,4 +229,31 @@ export interface ContactInput {
   email: string;
   subject?: string;
   message: string;
+}
+
+export interface BillingPrice {
+  id: string;
+  unitAmount: number;
+  currency: string;
+  interval?: string | null;
+}
+
+export interface BillingPlan {
+  id: string;
+  name: string;
+  description?: string | null;
+  prices: BillingPrice[];
+}
+
+export interface BillingPlansResult {
+  configured: boolean;
+  plans: BillingPlan[];
+}
+
+export interface BillingCheckoutInput {
+  priceId?: string;
+}
+
+export interface BillingRedirectResult {
+  url: string;
 }

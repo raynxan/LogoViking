@@ -54,7 +54,18 @@ Pure browser canvas operations (compress, resize, crop, convert, watermark, colo
 
 ### Auth
 
-Email + password and Google OAuth, server-side session cookie, surface via `components/auth/AuthContext.tsx` (`useGetCurrentUser`). DB schema in `lib/db/src/schema/index.ts` (`usersTable` with optional `passwordHash`, `googleId`, `avatarUrl`; `sessionsTable`, `usageHistoryTable`, `contactsTable`). Google OAuth flow lives in `artifacts/api-server/src/lib/auth.ts` and `routes/auth.ts` (`GET /api/auth/google` → consent; `GET /api/auth/google/callback` → exchange + find-or-link by `googleId` then email, then session, redirect to `/dashboard`). Requires secrets `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`; without them the button gracefully redirects to `/login?error=google_not_configured`. Login/signup pages render `components/auth/GoogleButton.tsx` and `OAuthErrorBanner.tsx`.
+Email + password and Google OAuth, server-side session cookie, surface via `components/auth/AuthContext.tsx` (`useGetCurrentUser`). DB schema in `lib/db/src/schema/index.ts` (`usersTable` with optional `passwordHash`, `googleId`, `avatarUrl`, `stripeCustomerId`, `stripeSubscriptionId`, `subscriptionStatus`; `sessionsTable`, `usageHistoryTable`, `contactsTable`). Google OAuth flow lives in `artifacts/api-server/src/lib/auth.ts` and `routes/auth.ts` (`GET /api/auth/google` → consent; `GET /api/auth/google/callback` → exchange + find-or-link by `googleId` then email, then session, redirect to `/dashboard`). Requires secrets `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`; without them the button gracefully redirects to `/login?error=google_not_configured`. Login/signup pages render `components/auth/GoogleButton.tsx` and `OAuthErrorBanner.tsx`.
+
+### Billing (Stripe)
+
+Pro subscriptions are powered by the Replit Stripe integration plus `stripe-replit-sync`, which mirrors Stripe data into a local `stripe.*` schema. On startup the api-server runs `runMigrations()`, configures a managed webhook at `/api/stripe/webhook`, and kicks off `syncBackfill()`. The webhook route is registered BEFORE `express.json()` in `app.ts` so the raw Buffer reaches `WebhookHandlers.processWebhook`. Plan state is derived in `getUserFromRequest` by joining the user's `stripeCustomerId` against `stripe.subscriptions`; the result is cached back onto `usersTable` (`plan`, `subscriptionStatus`, `stripeSubscriptionId`). Endpoints live in `artifacts/api-server/src/routes/billing.ts`: `GET /api/billing/plans`, `POST /api/billing/checkout` (creates customer + Checkout Session), `POST /api/billing/portal` (Customer Portal). Frontend uses `useListBillingPlans`, `useCreateBillingCheckout` on `/pricing`, and `useCreateBillingPortal` on `/dashboard`. Seed Pro Plan + monthly $9 price with `pnpm --filter @workspace/scripts run seed-stripe`.
+
+**To enable Stripe at launch:**
+
+1. In the Integrations panel, connect the Stripe integration (the `stripe` connector). The user dismissed it during the initial build; calling `proposeIntegration("connector:ccfg_stripe_01K611P4YQR0SZM11XFRQJC44Y")` will re-prompt them.
+2. Restart the api-server workflow. On boot, `initStripe()` will run `runMigrations()` (creates the `stripe.*` schema), register the managed webhook at `https://${REPLIT_DOMAINS}/api/stripe/webhook`, and start `syncBackfill()`.
+3. Run `pnpm --filter @workspace/scripts run seed-stripe` once to create the Pro Plan product and monthly $9 USD price in Stripe (idempotent — safe to re-run).
+4. Until Stripe is connected, `GET /api/billing/plans` returns `{ plans: [], configured: false }` and the pricing page renders a "Notify me when ready" CTA instead of "Upgrade to Pro" — no errors thrown, no broken flows.
 
 ### Theming
 

@@ -261,6 +261,8 @@ export const RegisterResponse = zod.object({
       email: zod.string(),
       plan: zod.string(),
       avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
+      subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
+      hasBilling: zod.boolean().optional(),
     })
     .optional(),
 });
@@ -279,6 +281,8 @@ export const LoginResponse = zod.object({
       email: zod.string(),
       plan: zod.string(),
       avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
+      subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
+      hasBilling: zod.boolean().optional(),
     })
     .optional(),
 });
@@ -297,6 +301,8 @@ export const GetCurrentUserResponse = zod.object({
         email: zod.string(),
         plan: zod.string(),
         avatarUrl: zod.union([zod.string(), zod.null()]).optional(),
+        subscriptionStatus: zod.union([zod.string(), zod.null()]).optional(),
+        hasBilling: zod.boolean().optional(),
       }),
       zod.null(),
     ])
@@ -349,4 +355,35 @@ export const SubmitContactBody = zod.object({
 export const SubmitContactResponse = zod.object({
   ok: zod.boolean(),
   message: zod.string().optional(),
+});
+
+export const ListBillingPlansResponse = zod.object({
+  configured: zod.boolean(),
+  plans: zod.array(
+    zod.object({
+      id: zod.string(),
+      name: zod.string(),
+      description: zod.union([zod.string(), zod.null()]).optional(),
+      prices: zod.array(
+        zod.object({
+          id: zod.string(),
+          unitAmount: zod.number(),
+          currency: zod.string(),
+          interval: zod.union([zod.string(), zod.null()]).optional(),
+        }),
+      ),
+    }),
+  ),
+});
+
+export const CreateBillingCheckoutBody = zod.object({
+  priceId: zod.string().optional(),
+});
+
+export const CreateBillingCheckoutResponse = zod.object({
+  url: zod.string(),
+});
+
+export const CreateBillingPortalResponse = zod.object({
+  url: zod.string(),
 });
