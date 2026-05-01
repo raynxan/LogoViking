@@ -21,7 +21,15 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-24 max-w-screen-2xl items-center px-4 mx-auto">
         <Link href="/" className="mr-6 flex items-center space-x-2">
-          <img src="/images/logoviking-header.png" alt="LogoViking" className="h-16 md:h-20 w-auto" />
+          <img
+            src="/images/logoviking-header.png"
+            alt="LogoViking"
+            className="h-16 md:h-20 w-auto"
+            style={{
+              filter:
+                "drop-shadow(0 0 1px rgba(0,0,0,0.55)) drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+            }}
+          />
         </Link>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <nav className="flex items-center space-x-6 text-sm font-medium">

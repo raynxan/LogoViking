@@ -9,7 +9,15 @@ export function Footer() {
       <div className="container max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
         <div className="space-y-4">
           <div className="font-bold text-lg text-primary flex items-center space-x-2">
-            <img src="/images/logoviking-header.png" alt="LogoViking" className="h-16 w-auto" />
+            <img
+              src="/images/logoviking-header.png"
+              alt="LogoViking"
+              className="h-16 w-auto"
+              style={{
+                filter:
+                  "drop-shadow(0 0 1px rgba(0,0,0,0.55)) drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+              }}
+            />
           </div>
           <p className="text-muted-foreground leading-relaxed">
             Viking-grade tools for modern creators. Free, fast, and secure. No signup required.
